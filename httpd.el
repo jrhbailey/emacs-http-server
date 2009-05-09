@@ -33,7 +33,7 @@
 (defvar httpd-port 8080
   "Web server port.")
 
-(defvar httpd-root "/home/wellons/public_html"
+(defvar httpd-root "~/public_html"
   "Web server file root.")
 
 (defvar httpd-mime-types
