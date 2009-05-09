@@ -124,6 +124,8 @@
     (httpd-add-log (format "%d %s" status get))
     (if (assoc "Referer" req)
 	(httpd-add-log (format "referer %s" (cadr (assoc "Referer" req)))))
+    (if (assoc "User-Agent" req)
+	(httpd-add-log (format "UA %s" (cadr (assoc "User-Agent" req)))))
     (if (not (= status 200)) (httpd-error proc status)
       (httpd-send-header proc (httpd-get-mime (httpd-get-ext path)) status)
       (httpd-send-file proc path))))
