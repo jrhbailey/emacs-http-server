@@ -29,6 +29,7 @@
 ;; * / -> /index.html
 ;; * .htaccess.el
 ;; * Dynamic .el
+;; * More lispy logs
 
 (defvar httpd-port 8080
   "Web server port.")
