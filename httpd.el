@@ -1,6 +1,6 @@
 ;;; httpd.el -- HTTP/1.0 web server for emacs
 ;;
-;; Copyright (C) 2009 Christopher Wellons <mosquitopsu@gmail.com>
+;; Copyright (c) 2009 Christopher Wellons <mosquitopsu@gmail.com>
 ;;
 ;; This file is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -108,7 +108,7 @@
     (erase-buffer)))
 
 (defun httpd-log (server client message)
-  "The web server log"
+  "Runs when client connects."
   (httpd-add-log (format "Connect  %s" client)))
 
 (defun httpd-sentinel (proc msg)
@@ -116,7 +116,7 @@
   (httpd-add-log (format "Quit %s" proc)))
 
 (defun httpd-filter (proc string)
-  "Runs each time a client connects."
+  "Runs each time client makes a request."
   (let* ((req (httpd-parse string))
 	 (get (cadr (assoc "GET" req)))
 	 (path (httpd-gen-path get))
