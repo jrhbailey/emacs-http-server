@@ -113,18 +113,25 @@
 
 (defun httpd-filter (proc string)
   "Runs each time a client connects."
-  (let* ((get (httpd-parse string))
+  (let* ((req (httpd-parse string))
+	 (get (cadr (assoc "GET" req)))
 	 (path (httpd-gen-path get))
 	 (status (httpd-status path)))
     (httpd-add-log (format "%d %s" status get))
+    (if (assoc "Referer" req)
+	(httpd-add-log (format "referer %s" (cadr (assoc "Referer" req)))))
     (if (not (= status 200)) (httpd-error proc status)
       (httpd-send-header proc (httpd-get-mime (httpd-get-ext path)) status)
       (httpd-send-file proc path))))
 
-
 (defun httpd-parse (string)
-  "Parse client http header."
-  (cadr (split-string string)))
+  "Parse client http header into alist."
+  (let* ((lines (split-string string "\n\r?"))
+	 (req (list (split-string (car lines)))))
+    (dolist (line (cdr lines) req)
+      (push (list (car (split-string line ": "))
+		  (mapconcat 'identity
+			     (cdr (split-string line ": ")) ": ")) req))))
 
 (defun httpd-status (path)
   "Determine status code for the path."
