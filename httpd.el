@@ -131,6 +131,7 @@
   (cond
    ((not (file-exists-p path))   404)
    ((not (file-readable-p path)) 403)
+   ((file-directory-p path)      403)
    (200)))
 
 (defun httpd-gen-path (path)
