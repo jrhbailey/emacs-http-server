@@ -75,6 +75,7 @@
   (interactive)
   (httpd-stop)
   (httpd-clear-log)
+  (httpd-add-log "Web server started.")
   (make-network-process
    :name     "httpd"
    :buffer   "*httpd*"
@@ -100,6 +101,8 @@
 
 (defun httpd-clear-log ()
   "Clear the web server log."
+  (if (null (get-buffer "*httpd*"))
+      (generate-new-buffer "*httpd*"))
   (with-current-buffer "*httpd*"
     (erase-buffer)))
 
