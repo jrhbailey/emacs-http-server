@@ -125,7 +125,7 @@
 	 (path (httpd-gen-path get))
 	 (status (httpd-status path)))
     (nconc log `((date ,(current-time-string))))
-    (nconc log `((proc ,proc)))
+    (nconc log `((address ,(car (process-contact proc)))))
     (nconc log `((get ,get)))
     (nconc log (list (append '(req) req)))
     (nconc log `((path ,path)))
