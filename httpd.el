@@ -75,7 +75,7 @@
   (interactive)
   (httpd-stop)
   (httpd-clear-log)
-  (httpd-log-string "'(log\n)\n")
+  (httpd-log-string "'(log)\n")
   (httpd-log-alist `(start ,(current-time-string)))
   (make-network-process
    :name     "httpd"
@@ -101,13 +101,12 @@
   "Add alist to the log."
   (if (not sp) (setq sp 2))
   (with-current-buffer "*httpd*"
-    (goto-char (1- (point-max)))
-    (insert (make-string sp 32))
-    (if (atom (cadr item)) (insert (format "%S\n" item))
-      (insert "(" (symbol-name (car item)) "\n")
+    (goto-char (- (point-max) 2))
+    (insert "\n" (make-string sp 32))
+    (if (atom (cadr item)) (insert (format "%S" item))
+      (insert "(" (symbol-name (car item)))
       (dolist (el (cdr item))
 	(httpd-log-alist el (+ 1 sp)))
-      (backward-char)
       (insert ")"))))
 
 (defun httpd-clear-log ()
@@ -124,12 +123,13 @@
 	 (get (cadr (assoc "GET" req)))
 	 (path (httpd-gen-path get))
 	 (status (httpd-status path)))
-    (nconc log `((date ,(current-time-string))))
-    (nconc log `((address ,(car (process-contact proc)))))
-    (nconc log `((get ,get)))
-    (nconc log (list (append '(req) req)))
-    (nconc log `((path ,path)))
-    (nconc log `((status ,status)))
+    (setq log (list 'connection
+		    `(date ,(current-time-string))
+		    `(address ,(car (process-contact proc)))
+		    `(get ,get)
+		    (append '(req) req)
+		    `(path ,path)
+		    `(status ,status)))
     (httpd-log-alist log)
     (if (not (= status 200)) (httpd-error proc status)
       (httpd-send-header proc (httpd-get-mime (httpd-get-ext path)) status)
@@ -139,10 +139,11 @@
   "Parse client http header into alist."
   (let* ((lines (split-string string "\n\r?"))
 	 (req (list (split-string (car lines)))))
-    (dolist (line (cdr lines) req)
+    (dolist (line (cdr lines))
       (push (list (car (split-string line ": "))
 		  (mapconcat 'identity
-			     (cdr (split-string line ": ")) ": ")) req))))
+			     (cdr (split-string line ": ")) ": ")) req))
+    (cddr req)))
 
 (defun httpd-status (path)
   "Determine status code for the path."
