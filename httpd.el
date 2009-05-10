@@ -29,7 +29,6 @@
 ;; * / -> /index.html
 ;; * .htaccess.el
 ;; * Dynamic .el
-;; * More lispy logs
 
 (defvar httpd-port 8080
   "Web server port.")
@@ -76,29 +75,40 @@
   (interactive)
   (httpd-stop)
   (httpd-clear-log)
-  (httpd-add-log "Web server started.")
+  (httpd-log-string "'(log\n)\n")
+  (httpd-log-alist `(start ,(current-time-string)))
   (make-network-process
    :name     "httpd"
    :buffer   "*httpd*"
    :service  httpd-port
    :server   t
    :family   'ipv4
-   :sentinel 'httpd-sentinel
-   :filter   'httpd-filter
-   :noquery  t
-   :log      'httpd-log))
+   :filter   'httpd-filter))
 
 (defun httpd-stop ()
   "Stop the emacs web server."
   (interactive)
-  (if (process-status "httpd") (delete-process "httpd")))
+  (if (process-status "httpd") (delete-process "httpd"))
+  (httpd-log-alist `(stop ,(current-time-string))))
 
-(defun httpd-add-log (string)
-  "Add entry to the web server log."
+(defun httpd-log-string (string)
+  "Add string to the web server log."
   (with-current-buffer "*httpd*"
     (goto-char (point-max))
-    (insert (current-time-string) "\t")
-    (insert string "\n")))
+    (insert string)))
+
+(defun httpd-log-alist (item &optional sp)
+  "Add alist to the log."
+  (if (not sp) (setq sp 2))
+  (with-current-buffer "*httpd*"
+    (goto-char (1- (point-max)))
+    (insert (make-string sp 32))
+    (if (atom (cadr item)) (insert (format "%S\n" item))
+      (insert "(" (symbol-name (car item)) "\n")
+      (dolist (el (cdr item))
+	(httpd-log-alist el (+ 1 sp)))
+      (backward-char)
+      (insert ")"))))
 
 (defun httpd-clear-log ()
   "Clear the web server log."
@@ -107,25 +117,20 @@
   (with-current-buffer "*httpd*"
     (erase-buffer)))
 
-(defun httpd-log (server client message)
-  "Runs when client connects."
-  (httpd-add-log (format "Connect  %s" client)))
-
-(defun httpd-sentinel (proc msg)
-  "Runs when client disconnects."
-  (httpd-add-log (format "Quit %s" proc)))
-
 (defun httpd-filter (proc string)
   "Runs each time client makes a request."
-  (let* ((req (httpd-parse string))
+  (let* ((log '(connection))
+	 (req (httpd-parse string))
 	 (get (cadr (assoc "GET" req)))
 	 (path (httpd-gen-path get))
 	 (status (httpd-status path)))
-    (httpd-add-log (format "%d %s" status get))
-    (if (assoc "Referer" req)
-	(httpd-add-log (format "referer %s" (cadr (assoc "Referer" req)))))
-    (if (assoc "User-Agent" req)
-	(httpd-add-log (format "UA %s" (cadr (assoc "User-Agent" req)))))
+    (nconc log `((date ,(current-time-string))))
+    (nconc log `((proc ,proc)))
+    (nconc log `((get ,get)))
+    (nconc log (list (append '(req) req)))
+    (nconc log `((path ,path)))
+    (nconc log `((status ,status)))
+    (httpd-log-alist log)
     (if (not (= status 200)) (httpd-error proc status)
       (httpd-send-header proc (httpd-get-mime (httpd-get-ext path)) status)
       (httpd-send-file proc path))))
