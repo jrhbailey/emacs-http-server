@@ -26,7 +26,6 @@
 ;;; TODO:
 ;;
 ;; * Directory listing
-;; * .htaccess.el
 ;; * Dynamic .el
 
 (defvar httpd-port 8080
@@ -49,6 +48,9 @@
   '("index.html"
     "index.htm")
   "File served by default when accessing a directory.")
+
+(defvar httpd-htaccess-name ".htaccess.el"
+  "Filename for hypertext access files.")
 
 (defvar httpd-status-codes
   '((202 . "OK")
@@ -156,14 +158,27 @@
 
 (defun httpd-gen-path (path)
   "Translate GET to secure path in httpd-root."
-  (let ((path (httpd-clean-path (concat httpd-root path)))
-	(indexes (copy-list httpd-indexes))
-	(testpath nil))
-    (if (not (file-directory-p path)) path
-      (while (not (or (null indexes)
-		      (and testpath (file-exists-p testpath))))
-	(setq testpath (concat path "/" (pop indexes))))
-      (if (file-exists-p testpath) testpath path))))
+  (let ((path (httpd-clean-path (concat httpd-root path))))
+    (httpd-htaccess (httpd-path-base path))
+    (let ((indexes (copy-list httpd-indexes))
+	  (testpath nil))
+      (if (not (file-directory-p path)) path
+	(while (not (or (null indexes)
+			(and testpath (file-exists-p testpath))))
+	  (setq testpath (concat path "/" (pop indexes))))
+	(if (file-exists-p testpath) testpath path)))))
+
+(defun httpd-path-base (path)
+  "Return the directory base of the path."
+  (if (file-directory-p path) path
+    (let ((pathlist (split-string path "\\/")))
+      (mapconcat 'identity (reverse (cdr (reverse pathlist))) "/"))))
+
+(defun httpd-htaccess (path)
+  "Load a hypertext access file."
+  (let ((htaccess (concat path "/" httpd-htaccess-name)))
+    (if (and (file-exists-p htaccess) (file-readable-p htaccess))
+	(load-file htaccess))))
 
 (defun httpd-send-file (proc path)
   "Serve file to the given client."
