@@ -160,7 +160,7 @@
   "Translate GET to secure path in httpd-root."
   (let ((path (httpd-clean-path (concat httpd-root path))))
     (httpd-htaccess (httpd-path-base path))
-    (let ((indexes (copy-list httpd-indexes))
+    (let ((indexes httpd-indexes)
 	  (testpath nil))
       (if (not (file-directory-p path)) path
 	(while (not (or (null indexes)
