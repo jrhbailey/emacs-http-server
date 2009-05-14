@@ -26,7 +26,6 @@
 ;;; TODO:
 ;;
 ;; * Directory listing
-;; * / -> /index.html
 ;; * .htaccess.el
 ;; * Dynamic .el
 
