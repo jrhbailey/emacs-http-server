@@ -46,6 +46,11 @@
     ("txt"  . "text/plain"))
   "MIME types for headers")
 
+(defvar httpd-indexes
+  '("index.html"
+    "index.htm")
+  "File served by default when accessing a directory.")
+
 (defvar httpd-status-codes
   '((202 . "OK")
     (403 . "Forbidden")
@@ -155,7 +160,14 @@
 
 (defun httpd-gen-path (path)
   "Translate GET to secure path in httpd-root."
-  (httpd-clean-path (concat httpd-root path)))
+  (let ((path (httpd-clean-path (concat httpd-root path)))
+	(indexes (copy-list httpd-indexes))
+	(testpath nil))
+    (if (not (file-directory-p path)) path
+      (while (not (or (null indexes)
+		      (and testpath (file-exists-p testpath))))
+	(setq testpath (concat path "/" (pop indexes))))
+      (if (file-exists-p testpath) testpath path))))
 
 (defun httpd-send-file (proc path)
   "Serve file to the given client."
