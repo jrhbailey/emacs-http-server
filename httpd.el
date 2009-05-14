@@ -84,7 +84,6 @@
   (httpd-log-alist `(start ,(current-time-string)))
   (make-network-process
    :name     "httpd"
-   :buffer   "*httpd*"
    :service  httpd-port
    :server   t
    :family   'ipv4
@@ -98,14 +97,14 @@
 
 (defun httpd-log-string (string)
   "Add string to the web server log."
-  (with-current-buffer "*httpd*"
+  (with-current-buffer (get-buffer-create "*httpd*")
     (goto-char (point-max))
     (insert string)))
 
 (defun httpd-log-alist (item &optional sp)
   "Add alist to the log."
   (if (not sp) (setq sp 2))
-  (with-current-buffer "*httpd*"
+  (with-current-buffer (get-buffer-create "*httpd*")
     (goto-char (- (point-max) 2))
     (insert "\n" (make-string sp 32))
     (if (atom (cadr item)) (insert (format "%S" item))
@@ -116,9 +115,7 @@
 
 (defun httpd-clear-log ()
   "Clear the web server log."
-  (if (null (get-buffer "*httpd*"))
-      (generate-new-buffer "*httpd*"))
-  (with-current-buffer "*httpd*"
+  (with-current-buffer (get-buffer-create "*httpd*")
     (erase-buffer)))
 
 (defun httpd-filter (proc string)
