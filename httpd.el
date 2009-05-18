@@ -172,7 +172,7 @@
   "Return the directory base of the path."
   (if (file-directory-p path) path
     (let ((pathlist (split-string path "\\/")))
-      (mapconcat 'identity (reverse (cdr (reverse pathlist))) "/"))))
+      (mapconcat 'identity (butlast pathlist) "/"))))
 
 (defun httpd-htaccess (path)
   "Load a hypertext access file."
