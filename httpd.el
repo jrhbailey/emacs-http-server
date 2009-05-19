@@ -41,6 +41,7 @@
     ("css"  . "text/css")
     ("htm"  . "text/html")
     ("html" . "text/html")
+    ("xml"  . "text/xml")
     ("txt"  . "text/plain"))
   "MIME types for headers")
 
