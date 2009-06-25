@@ -191,7 +191,7 @@
 (defun httpd-clean-path (path)
   "Clean dangerous .. from the path."
   (mapconcat 'identity 
-	     (delete ".." (split-string path "\\/")) "/"))
+	     (delete ".." (split-string (httpd-decode path) "\\/")) "/"))
 
 (defun httpd-get-ext (path)
   "Get extention from path to determine MIME type."
@@ -223,3 +223,14 @@
   (with-current-buffer buffer  
     (httpd-send-string proc (buffer-substring (point-min)
 					      (point-max)))))
+
+(defun httpd-decode (str)
+  "Decode some % entities in a string."
+  (let ((p 0))
+    (while (and (< p (length str)) (not (= (aref str p) ?%)))
+      (setq p (1+ p)))
+    (if (>= p (length str)) str
+	(concat (substring str 0 p)
+		(char-to-string
+		 (string-to-number (substring str (1+ p) (+ 3 p)) 16))
+		(httpd-decode (substring str (+ 3 p)))))))
