@@ -270,3 +270,27 @@ variable/value pairs, and the third is the target."
 	  (httpd-send-header proc "text/html" 200)
 	  (httpd-send-buffer proc (current-buffer)))
       (error (httpd-error proc 500)))))
+
+(defun httpd-generate-html (sexp)
+  "Generate HTML from the given sexp. Tags are based on symbol
+names, like 'html, 'head. The elisp symbol begins a section of
+lisp to be executed, and the results used to generate
+HTML. Strings are passed literally."
+  (let ((tag (if (consp sexp) (car sexp))))
+    (cond
+     ((stringp sexp)
+      (insert sexp))
+     ((eq tag 'elisp)
+      (mapcar 'httpd-generate-html (eval (cadr sexp))))
+     ((symbolp tag)
+      (insert (format "<%s>\n" tag))
+      (mapc 'httpd-generate-html (cdr sexp))
+      (insert (format "</%s>\n" tag)))
+     ((listp tag)
+      (insert (format "<%s " (car tag))
+	      (mapconcat
+	       #'(lambda (pair)
+		   (format "%s=\"%s\"" (car pair) (cdr pair)))
+	       (cdr tag) " ") ">")
+      (mapc 'httpd-generate-html (cdr sexp))
+      (insert (format "</%s>\n" (car tag)))))))
