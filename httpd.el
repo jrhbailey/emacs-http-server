@@ -26,7 +26,6 @@
 ;;; TODO:
 ;;
 ;; * Directory listing
-;; * Dynamic .el
 
 (defvar httpd-port 8080
   "Web server port.")
