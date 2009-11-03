@@ -264,10 +264,10 @@ variable/value pairs, and the third is the target."
   "Execute the given servlet and handle any errors."
   (with-temp-buffer
     (condition-case nil
-	(progn
-	  (funcall servlet uri-query req uri-path)
+	(let (mimetype)
+	  (setq mimetype (funcall servlet uri-query req uri-path))
 	  (set-buffer-multibyte nil)
-	  (httpd-send-header proc "text/html" 200)
+	  (httpd-send-header proc mimetype 200)
 	  (httpd-send-buffer proc (current-buffer)))
       (error (httpd-error proc 500)))))
 
@@ -293,4 +293,5 @@ HTML. Strings are passed literally."
 		   (format "%s=\"%s\"" (car pair) (cdr pair)))
 	       (cdr tag) " ") ">")
       (mapc 'httpd-generate-html (cdr sexp))
-      (insert (format "</%s>\n" (car tag)))))))
+      (insert (format "</%s>\n" (car tag))))))
+  "text/html")
