@@ -20,7 +20,7 @@
 
 (defun httpd/show-buffer (uri-query req uri-path)
   "Output the contents of the requested buffer inside HTML."
-  (let ((buffer (get-buffer (cadar uri-query))))
+  (let ((buffer (get-buffer (cadr (assoc "buffer" uri-query)))))
     (insert-buffer-substring buffer)
     "text/plain"))
 
