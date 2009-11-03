@@ -131,20 +131,28 @@
   "Runs each time client makes a request."
   (let* ((log '(connection))
 	 (req (httpd-parse string))
-	 (get (cadr (assoc "GET" req)))
-	 (path (httpd-gen-path get))
+	 (uri (cadr (assoc "GET" req)))
+	 (parsed-uri (httpd-parse-uri uri))
+	 (uri-path (nth 0 parsed-uri))
+	 (uri-query (nth 1 parsed-uri))
+	 (uri-target (nth 2 parsed-uri))
+	 (servlet (httpd-get-servlet uri-path))
+	 (path (httpd-gen-path uri-path))
 	 (status (httpd-status path)))
     (setq log (list 'connection
 		    `(date ,(current-time-string))
 		    `(address ,(car (process-contact proc)))
-		    `(get ,get)
+		    `(get ,uri-path)
 		    (append '(req) req)
+		    `(servlet ,(format "%S" servlet))
 		    `(path ,path)
 		    `(status ,status)))
     (httpd-log-alist log)
-    (if (not (= status 200)) (httpd-error proc status)
-      (httpd-send-header proc (httpd-get-mime (httpd-get-ext path)) status)
-      (httpd-send-file proc path))))
+    (cond
+     (servlet (httpd-handle-servlet proc servlet uri-query req uri-path))
+     ((not (= status 200)) (httpd-error proc status))
+     (t (httpd-send-header proc (httpd-get-mime (httpd-get-ext path)) status)
+	(httpd-send-file proc path)))))
 
 (defun httpd-parse (string)
   "Parse client http header into alist."
@@ -230,3 +238,35 @@
   (with-current-buffer buffer
     (httpd-send-string proc (buffer-substring (point-min)
 					      (point-max)))))
+
+(defun httpd-parse-uri (uri)
+  "Split a URI into it's components. In the return, the first
+element is the script path, the second is an alist of
+variable/value pairs, and the third is the target."
+  (let ((p1 (string-match (regexp-quote "?") uri))
+	(p2 (string-match (regexp-quote "#") uri))
+	retval)
+    (push (if p2 (url-unhex-string (substring uri (1+ p2))))
+	  retval)
+    (push (if p1 (mapcar #'(lambda (str)
+			     (mapcar 'url-unhex-string (split-string str "=")))
+			 (split-string (substring uri (1+ p1) p2) "&")))
+	  retval)
+    (push (substring uri 0 (or p1 p2))
+	  retval)))
+
+(defun httpd-get-servlet (uri-path)
+  "Return function for given path if it exists."
+  (let ((func (intern-soft (concat "httpd" uri-path))))
+    (if (fboundp func) func)))
+
+(defun httpd-handle-servlet (proc servlet uri-query req uri-path)
+  "Execute the given servlet and handle any errors."
+  (with-temp-buffer
+    (condition-case nil
+	(progn
+	  (funcall servlet uri-query req uri-path)
+	  (set-buffer-multibyte nil)
+	  (httpd-send-header proc "text/html" 200)
+	  (httpd-send-buffer proc (current-buffer)))
+      (error (httpd-error proc 500)))))
