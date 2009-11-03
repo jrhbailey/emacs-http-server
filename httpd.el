@@ -74,6 +74,13 @@
 </head><body>
 <h1>Forbidden</h1>
 <p>The requested URL is forbidden.</p>
+</body></html>")
+    (500 . "<!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML 2.0//EN\">
+<html><head>
+<title>500 Internal Error</title>
+</head><body>
+<h1>500 Internal Error</h1>
+<p>Internal error when handling this request.</p>
 </body></html>"))
   "HTML for various errors.")
 
