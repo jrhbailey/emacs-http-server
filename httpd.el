@@ -220,6 +220,6 @@
 
 (defun httpd-send-buffer (proc buffer)
   "Send buffer to client."
-  (with-current-buffer buffer  
+  (with-current-buffer buffer
     (httpd-send-string proc (buffer-substring (point-min)
 					      (point-max)))))
