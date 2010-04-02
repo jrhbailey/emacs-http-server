@@ -27,6 +27,8 @@
 ;;
 ;; * Directory listing
 
+(require 'cl)
+
 (defvar httpd-port 8080
   "Web server port.")
 
@@ -294,3 +296,5 @@ HTML. Strings are passed literally."
       (mapc 'httpd-generate-html (cdr sexp))
       (insert (format "</%s>\n" (car tag))))))
   "text/html")
+
+(provide 'httpd)
