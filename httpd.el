@@ -56,7 +56,7 @@
   "Filename for hypertext access files.")
 
 (defvar httpd-status-codes
-  '((202 . "OK")
+  '((200 . "OK")
     (403 . "Forbidden")
     (500 . "Internal Server Error")
     (404 . "Not Found"))
