@@ -30,11 +30,23 @@
 
 (require 'cl)
 
-(defvar httpd-port 8080
-  "Web server port.")
+(defcustom httpd-port 8080
+  "Web server port."
+  :group 'httpd
+  :type 'integer)
 
-(defvar httpd-root "~/public_html"
-  "Web server file root.")
+(defcustom httpd-root "~/public_html"
+  "Web server file root."
+  :group 'httpd
+  :type 'string)
+
+(defcustom httpd-host 'local
+  "The host to connect to.  `httpd-host' should be a host name or
+  IP address or the symbol `local' for the the local
+  host."
+  :group 'httpd
+  :type (choice (string :tag "Host name or IP address")
+                (const 'local :tag "Local host")))
 
 (defvar httpd-mime-types
   '(("png"  . "image/png")
