@@ -22,9 +22,9 @@
   (httpd-generate-html
    '(html
      (head
-      (title "emacs-httpd: list-buffers"))
+      (title "Emacs-httpd: list-buffers"))
      (body
-      (h1 "buffer list")
+      (h1 "Buffer List")
       (ul
        (elisp
 	(mapcar
@@ -48,3 +48,25 @@
     (switch-to-buffer buffer)
     (set-buffer cb)
     (httpd/list-buffers uri-query req uri-path)))
+
+;---- for list-file ---
+(defun pnt-file-name (fn)
+  "Return each file as html li"
+  `(li ((a (href .
+				 ,(format "/%s"
+						  (url-hexify-string fn))))
+		,fn)))
+
+(defun httpd/list-files (uri-query req uri-path)
+  "List all files as a web page."
+  (httpd-generate-html
+   '(html
+     (head
+      (title "Emacs-httpd: List-Files"))
+     (body
+      (h1 "File List")
+      (ul
+       (elisp
+		(mapcar
+		 #'pnt-file-name
+		 (httpd-file-list httpd-root))))))))

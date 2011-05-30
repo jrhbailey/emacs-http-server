@@ -311,4 +311,48 @@ HTML. Strings are passed literally."
       (insert (format "</%s>\n" (car tag))))))
   "text/html")
 
+
+; ---------
+; some file utility functions
+; used by httpd/list-files
+
+(defun httpd-file-p (dir item)
+  "Is /dir/item a file?"
+  (not (file-directory-p (concat dir item))))
+
+(defun httpd-last-ch (str)
+  "Return last char in string"
+  (aref str (1- (length str)))
+  )
+
+(defun httpd-dir-needs-term-p (dir)
+  "Does dir path need trailing '/'?"
+  (not (char-equal ?/ (httpd-last-ch dir)))
+  )
+
+(defun httpd-keep-files (dir dir-list)
+  "Process dir-list, return list of just files"
+  (cond
+	; end of list signal
+   ((not dir-list) nil)
+
+	; if file keep and recurse
+   ((httpd-file-p dir (car dir-list))  
+	(cons (car dir-list) (httpd-keep-files dir (cdr dir-list))))
+
+	; default - don't keep folders
+   (t (httpd-keep-files dir (cdr dir-list)))
+   ) ;end cond scope
+  )
+
+(defun httpd-file-list (dir)
+  "Return list of files in dir"
+  (if (httpd-dir-needs-term-p dir) ; add trailing '/' if needed
+	  (setq dir (file-name-as-directory dir)))
+
+  (let ((dir-list (directory-files dir nil nil t)))
+	(httpd-keep-files dir dir-list)
+	))
+
+
 (provide 'httpd)
