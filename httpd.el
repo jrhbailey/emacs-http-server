@@ -40,13 +40,14 @@
   :group 'httpd
   :type 'string)
 
-(defcustom httpd-host 'local
-  "The host to connect to.  `httpd-host' should be a host name or
-  IP address or the symbol `local' for the the local
-  host."
-  :group 'httpd
-  :type (choice (string :tag "Host name or IP address")
-                (const 'local :tag "Local host")))
+;; Causes error during eval: custom-declare-variable: Symbol's function definition is void: choice
+;; (defcustom httpd-host 'local
+;;   "The host to connect to.  `httpd-host' should be a host name or
+;;   IP address or the symbol `local' for the the local
+;;   host."
+;;   :group 'httpd
+;;   :type (choice (string :tag "Host name or IP address")
+;;                 (const 'local :tag "Local host")))
 
 (defvar httpd-mime-types
   '(("png"  . "image/png")
