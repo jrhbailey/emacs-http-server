@@ -30,6 +30,10 @@
 
 (require 'cl)
 
+(defgroup httpd nil 
+  "Emacs Web Server." 
+  :group 'comm)
+
 (defcustom httpd-port 8080
   "Web server port."
   :group 'httpd
@@ -38,7 +42,7 @@
 (defcustom httpd-root "~/public_html"
   "Web server file root."
   :group 'httpd
-  :type 'string)
+  :type 'directory)
 
 ;; Causes error during eval: custom-declare-variable: Symbol's function definition is void: choice
 ;; (defcustom httpd-host 'local
