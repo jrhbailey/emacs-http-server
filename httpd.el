@@ -110,12 +110,16 @@
   (httpd-clear-log)
   (httpd-log-string "'(log)\n")
   (httpd-log-alist `(start ,(current-time-string)))
-  (make-network-process
-   :name     "httpd"
-   :service  httpd-port
-   :server   t
-   :family   'ipv4
-   :filter   'httpd-filter))
+  (let
+      ((proc (make-network-process
+	      :name     "httpd"
+	      :service  httpd-port
+	      :server   t
+	      :family   'ipv4
+	      :filter   'httpd-filter)))
+    (process-put proc :httpd-root httpd-root)
+    proc))
+
 
 (defun httpd-stop ()
   "Stop the emacs web server."
@@ -148,7 +152,8 @@
 
 (defun httpd-filter (proc string)
   "Runs each time client makes a request."
-  (let* ((log '(connection))
+  (let* ((httpd-root (process-get proc :httpd-root))
+	 (log '(connection))
 	 (req (httpd-parse string))
 	 (uri (cadr (assoc "GET" req)))
 	 (parsed-uri (httpd-parse-uri uri))
