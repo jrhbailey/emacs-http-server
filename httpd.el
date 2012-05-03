@@ -180,7 +180,7 @@
 
 (defun httpd-parse (string)
   "Parse client http header into alist."
-  (let* ((lines (split-string string "\n\r?"))
+  (let* ((lines (split-string string "[\n\r]+"))
 	 (req (list (split-string (car lines)))))
     (dolist (line (cdr lines))
       (push (list (car (split-string line ": "))
